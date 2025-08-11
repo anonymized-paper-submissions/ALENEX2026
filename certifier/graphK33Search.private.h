@@ -14,6 +14,40 @@ extern "C"
 {
 #endif
 
+    // K33CERT begin: Marking edges as virtual
+
+    // This should get promoted to graphStructures.h (plus check if debug function versions needed)
+    //
+    //     flags: Bits 0-15 reserved for library; bits 16 and higher for apps
+    //            ...
+    //            Bit 7: Arc is virtual (caller should ensure the twin arc is also set or cleared)
+
+#define EDGEFLAG_VIRTUAL_MASK 128
+
+#define gp_GetEdgeVirtual(theGraph, e) (theGraph->E[e].flags & EDGEFLAG_VIRTUAL_MASK)
+#define gp_ClearEdgeVirtual(theGraph, e) (theGraph->E[e].flags &= ~EDGEFLAG_VIRTUAL_MASK)
+#define gp_SetEdgeVirtual(theGraph, e) (theGraph->E[e].flags |= EDGEFLAG_VIRTUAL_MASK)
+
+    // These vertex macros and flag should also get promoted to graphStructures.h
+    //
+    // A fuller implementation of virtual vertices will be rationalized with the
+    // vertices that are virtual due to being at positions N+1 to 2N.
+    // This is being added now as a beachhead to allow primary location vertices
+    // to also be virtual, as is needed in this certification implementation.
+    //
+    //     flags: Bits 0-15 reserved for library; bits 16 and higher for apps
+    //            ...
+    //            Bit 4: Indicates whether a vertex's primary representation should be
+    //                   hidden, such as due to being transferred to another graph.
+
+#define VERTEX_VIRTUAL_MASK 16
+
+#define gp_GetVertexVirtual(theGraph, v) (theGraph->V[v].flags & VERTEX_VIRTUAL_MASK)
+#define gp_ClearVertexVirtual(theGraph, v) (theGraph->V[v].flags &= ~VERTEX_VIRTUAL_MASK)
+#define gp_SetVertexVirtual(theGraph, v) (theGraph->V[v].flags |= VERTEX_VIRTUAL_MASK)
+
+// K33CERT end
+
 // K33CERT begin: Declarations for K3,3 embedding obsruction tree nodes
 #define K33SEARCH_EOTYPE_ENODE 0
 #define K33SEARCH_EOTYPE_ONODE 1
@@ -26,9 +60,9 @@ extern "C"
 
     typedef K33Search_EONode *K33Search_EONodeP;
 
-    K33Search_EONodeP _K33Search_EONode_New(graphP theSubgraph);
+    K33Search_EONodeP _K33Search_EONode_New(int theEOType, graphP theSubgraph, int theSubgraphOwner);
     void _K33Search_EONode_Free(K33Search_EONodeP *pEONode);
-    int _K33Search_TestForEOTreeChildren(K33Search_EONodeP EOTreeRoot);
+    int _K33Search_TestForEOTreeChildren(K33Search_EONodeP EOTreeNode);
     int _K33Search_AssembleMainPlanarEmbedding(K33Search_EONodeP EOTreeRoot);
     int _K33Search_ValidateEmbeddingObstructionTree(K33Search_EONodeP EOTreeRoot, graphP origGraph);
     // K33CERT end
@@ -48,6 +82,11 @@ extern "C"
     typedef struct
     {
         int separatedDFSChildList, backArcList, mergeBlocker;
+        // K33CERT begin: Addition of a variable often and temporarily used to enable
+        //                internal subroutines to map between a graph's vertex indices
+        //                and the vertex indices of a subgraph being extracted from it
+        int graphToSubgraphIndex, subgraphToGraphIndex;
+        // K33CERT end
     } K33Search_VertexInfo;
 
     typedef K33Search_VertexInfo *K33Search_VertexInfoP;

@@ -211,9 +211,9 @@ int _K33Search_CreateStructures(K33SearchContext *context)
     if (context->theGraph->N <= 0)
         return NOTOK;
 
-// K33CERT begin
-    if ((context->associatedEONode = _K33Search_EONode_New(context->theGraph)) == NULL ||
-// K33CERT end
+    // K33CERT begin
+    if ((context->associatedEONode = _K33Search_EONode_New(K33SEARCH_EOTYPE_ENODE, context->theGraph, FALSE)) == NULL ||
+        // K33CERT end
         (context->E = (K33Search_EdgeRecP)malloc(Esize * sizeof(K33Search_EdgeRec))) == NULL ||
         (context->VI = (K33Search_VertexInfoP)malloc(VIsize * sizeof(K33Search_VertexInfo))) == NULL ||
         (context->separatedDFSChildLists = LCNew(VIsize)) == NULL ||
@@ -291,7 +291,7 @@ void _K33Search_ReinitializeGraph(graphP theGraph)
         // K33CERT begin
         // Get rid of an embedding obstruction tree if one was formed due to operations on this graph
         _K33Search_EONode_Free(&context->associatedEONode);
-        if ((context->associatedEONode = _K33Search_EONode_New(context->theGraph)) == NULL)
+        if ((context->associatedEONode = _K33Search_EONode_New(K33SEARCH_EOTYPE_ENODE, context->theGraph, FALSE)) == NULL)
             ErrorMessage("_K33Search_ReinitializeGraph() failed to allocate an embedding obstruction tree root node.\n");
         // K33CERT end
 
